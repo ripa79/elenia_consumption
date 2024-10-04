@@ -2,6 +2,7 @@ import csv
 import chardet
 from datetime import datetime, timedelta, date
 import os
+import glob
 
 def detect_encoding(file_path):
     with open(file_path, 'rb') as file:
@@ -51,6 +52,13 @@ def read_consumption_csv(file_path):
                 if 'Yhteensä' not in str(e):  # Ignore the 'Yhteensä' row
                     print(f"Skipping row in consumption file due to error: {e}")
     return data
+
+def get_latest_consumption_file(directory='downloads'):
+    pattern = os.path.join(directory, 'consumption*.csv')
+    files = glob.glob(pattern)
+    if not files:
+        raise FileNotFoundError(f"No consumption files found in {directory}")
+    return max(files, key=os.path.getctime)
 
 def process_data(prices, consumption):
     result = {}
@@ -108,6 +116,7 @@ def save_processed_data(data, filename):
 # Main execution
 if __name__ == "__main__":
     prices = read_csv('downloads/spot_prices.csv')
-    consumption = read_consumption_csv('downloads/consumption_20240101_20241003.csv')
+    latest_consumption_file = get_latest_consumption_file()
+    consumption = read_consumption_csv(latest_consumption_file)
     processed_data = process_data(prices, consumption)
     save_processed_data(processed_data, 'processed_data_2024.csv')

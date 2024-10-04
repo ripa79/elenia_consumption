@@ -128,7 +128,7 @@ def fetch_consumption_data():
         logging.info(f"Page title: {driver.title}")
 
         # Tab navigation to find download button
-        for _ in range(11):
+        for _ in range(10):
             actions.send_keys(Keys.TAB).perform()
             time.sleep(random.uniform(0.1, 0.3))
 
