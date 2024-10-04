@@ -2,6 +2,8 @@
 
 This project analyzes electricity consumption and pricing data, comparing spot prices with a fixed-price contract to determine which option is more beneficial for Finnish electricity consumers.
 
+![Final Result](final_result.png) 
+
 ## Features
 
 - Fetches and processes electricity consumption data from Elenia (Finnish electricity provider)
