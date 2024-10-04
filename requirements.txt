@@ -1,0 +1,7 @@
+matplotlib
+requests
+pytz
+python-dotenv
+selenium
+webdriver_manager
+chardet
