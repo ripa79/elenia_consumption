@@ -2,6 +2,7 @@ import csv
 import chardet
 from datetime import datetime, timedelta, date
 import os
+import glob  # Import glob to handle file pattern matching
 
 def detect_encoding(file_path):
     with open(file_path, 'rb') as file:
@@ -108,6 +109,16 @@ def save_processed_data(data, filename):
 # Main execution
 if __name__ == "__main__":
     prices = read_csv('downloads/spot_prices.csv')
-    consumption = read_consumption_csv('downloads/consumption_20240101_20241003.csv')
+    
+    # Search for all consumption CSV files in the downloads directory
+    consumption_files = glob.glob('downloads/consumption*.csv')
+    
+    if not consumption_files:
+        raise FileNotFoundError("No consumption files found in the 'downloads' directory.")
+    
+    # Select the latest consumption file based on modification time
+    latest_consumption_file = max(consumption_files, key=os.path.getmtime)
+    
+    consumption = read_consumption_csv(latest_consumption_file)
     processed_data = process_data(prices, consumption)
     save_processed_data(processed_data, 'processed_data_2024.csv')

@@ -24,7 +24,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Constants
-DOWNLOAD_DIR = f"{os.getcwd()}/downloads/"
+DOWNLOAD_DIR = f"{os.getcwd()}/downloads"
 AUTH_URL = 'https://idm.asiakas.elenia.fi/'
 USERNAME = os.getenv('ELENIA_USERNAME')
 PASSWORD = os.getenv('ELENIA_PASSWORD')
@@ -118,7 +118,7 @@ def fetch_consumption_data():
         ainalab_button.click()
         logging.info("Navigated to Elenia Aina")
 
-        time.sleep(2)
+        time.sleep(3)
 
         # Navigate to Kulutustiedot
         protected_resource_url = 'https://asiakas.elenia.fi/kulutus'
@@ -127,26 +127,59 @@ def fetch_consumption_data():
         logging.info("Opened kulutus")
         logging.info(f"Page title: {driver.title}")
 
-        # Tab navigation to find download button
-        for _ in range(11):
-            actions.send_keys(Keys.TAB).perform()
-            time.sleep(random.uniform(0.1, 0.3))
+        def navigate_to_download_button():
+            # Tab navigation to find the download button with specific text
+            target_text = "Lataa kulutus tuntitasolla"
+            for _ in range(10):
+                actions.send_keys(Keys.TAB).perform()
+                time.sleep(random.uniform(0.1, 0.3))
+                active_element = driver.switch_to.active_element
+                if active_element.text.strip() == target_text:
+                    print(active_element)
+                    # press enter
+                    actions.send_keys(Keys.ENTER).perform()
+                    break
+            else:
+                print(f'Element with text "{target_text}" not found after 10 TAB presses.')
 
-        active_element = driver.switch_to.active_element
-        logging.info(f"Found element: {active_element.text}")
-        active_element.click()
-        logging.info("Clicked download button")
+        navigate_to_download_button()
+
+        # Wait for download to start
+        download_started = False
+        for _ in range(30):  # Wait up to 30 seconds for download to start
+            time.sleep(1)
+            files = glob.glob(os.path.join(DOWNLOAD_DIR, "consumption_*.csv"))
+            if files:
+                download_started = True
+                logging.info(f"Download started: {files[0]}")
+                break
+
+        if not download_started:
+            logging.error("Download did not start within the expected time")
+            raise Exception("Download did not start")
 
         # Wait for download to complete
-        time.sleep(30)
+        download_completed = False
+        for _ in range(60):  # Wait up to 60 seconds for download to complete
+            time.sleep(1)
+            files = glob.glob(os.path.join(DOWNLOAD_DIR, "consumption_*.csv"))
+            if files and not any(file.endswith('.crdownload') for file in files):
+                download_completed = True
+                logging.info(f"Download completed: {files[0]}")
+                break
 
-        logging.info("Consumption data download process completed")
+        if not download_completed:
+            logging.error("Download did not complete within the expected time")
+            raise Exception("Download did not complete")
+
+        logging.info("Consumption data download process completed successfully")
 
     except Exception as e:
         logging.error(f"Error during navigation or download: {e}")
         if driver:
             logging.info(f"Current URL: {driver.current_url}")
             logging.info(f"Page source: {driver.page_source}")
+        raise  # Re-raise the exception to stop the script
 
     finally:
         if driver:
