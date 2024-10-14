@@ -24,7 +24,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Constants
-DOWNLOAD_DIR = f"{os.getcwd()}/downloads"
+DOWNLOAD_DIR = f"{os.getcwd()}/downloads/"
 AUTH_URL = 'https://idm.asiakas.elenia.fi/'
 USERNAME = os.getenv('ELENIA_USERNAME')
 PASSWORD = os.getenv('ELENIA_PASSWORD')

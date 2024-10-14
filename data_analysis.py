@@ -74,8 +74,12 @@ def get_current_spot_price():
         data = response.json()
         now = datetime.now(pytz.timezone('Europe/Helsinki'))
         for price in data['prices']:
-            start_time = datetime.fromisoformat(price['startDate'])
-            end_time = datetime.fromisoformat(price['endDate'])
+            # Remove the 'Z' and parse the string
+            start_time = datetime.fromisoformat(price['startDate'].rstrip('Z')).replace(tzinfo=pytz.UTC)
+            end_time = datetime.fromisoformat(price['endDate'].rstrip('Z')).replace(tzinfo=pytz.UTC)
+            # Convert to Helsinki time
+            start_time = start_time.astimezone(pytz.timezone('Europe/Helsinki'))
+            end_time = end_time.astimezone(pytz.timezone('Europe/Helsinki'))
             if start_time <= now < end_time:
                 return price['price']
     return None
