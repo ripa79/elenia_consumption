@@ -31,23 +31,30 @@ def read_consumption_csv(file_path):
     data = {}
     with open(file_path, 'r', encoding=encoding) as file:
         reader = csv.reader(file, delimiter=';')
-        next(reader)  # Skip header
+        header = next(reader)
+        
+        # Find the index of the consumption column
+        consumption_col_index = None
+        if "Netotettu keskiteho" in header:
+            consumption_col_index = header.index("Netotettu keskiteho")
+        elif "Keskiteho" in header:
+            consumption_col_index = header.index("Keskiteho")
+        else:
+            raise ValueError("Required column 'Netotettu keskiteho' or 'Keskiteho' not found in the CSV file.")
+        
         for row in reader:
             try:
                 timestamp = datetime.strptime(row[0], '%d.%m. %H:%M:%S')
                 timestamp = timestamp.replace(year=2024)
-                day_consumption = row[1].strip()
-                night_consumption = row[2].strip()
+                consumption_value = row[consumption_col_index].strip()
                 
-                if day_consumption:
-                    consumption = parse_finnish_float(day_consumption)
-                elif night_consumption:
-                    consumption = parse_finnish_float(night_consumption)
+                if consumption_value:
+                    consumption = parse_finnish_float(consumption_value)
+                    data[timestamp] = consumption
                 else:
                     print(f"Skipping row with empty consumption value: {row}")
                     continue
                 
-                data[timestamp] = consumption
             except (ValueError, IndexError) as e:
                 if 'Yhteensä' not in str(e):  # Ignore the 'Yhteensä' row
                     print(f"Skipping row in consumption file due to error: {e}")
