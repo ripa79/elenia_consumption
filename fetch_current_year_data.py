@@ -122,7 +122,25 @@ def fetch_consumption_data():
 
         # Navigate to Kulutustiedot
         protected_resource_url = 'https://asiakas.elenia.fi/kulutus'
-        driver.get(protected_resource_url)
+        max_attempts = 10
+        attempt = 0
+        expected_title = "Elenia Aina - Kulutustiedot"
+        
+        while attempt < max_attempts:
+            driver.get(protected_resource_url)
+            time.sleep(2)  # Wait for page to start loading
+            
+            if driver.title == expected_title:
+                logging.info(f"Opened kulutus. Page title: {driver.title}")
+                break
+            else:
+                attempt += 1
+                logging.info(f"Waiting for correct page title. Attempt {attempt}/{max_attempts}")
+        
+        if attempt == max_attempts:
+            logging.error(f"Failed to load the correct page. Current title: {driver.title}")
+            raise Exception("Failed to load the Kulutustiedot page")
+
         time.sleep(5)
         logging.info("Opened kulutus")
         logging.info(f"Page title: {driver.title}")
